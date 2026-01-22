@@ -1,47 +1,35 @@
 from django.contrib import admin
 from .models import Indicator, ComputationRule, Dataset
 
-# Ce fichier configure l'interface Django Admin pour tes modèles.
-# L'idée : décider "comment" Indicator et ComputationRule s'affichent et s'éditent dans /admin.
-
 
 class ComputationRuleInline(admin.TabularInline):
-    # Inline = édition d'un modèle "enfant" à l'intérieur de la page du modèle "parent".
-    # Ici, ComputationRule est "enfant" parce qu'il a une ForeignKey vers Indicator.
     model = ComputationRule
+    extra = 0
+    fields = ("version", "operation", "is_active")
+    ordering = ("-is_active", "-version")
 
-    # Nombre de lignes vides affichées par défaut pour ajouter de nouvelles rules.
-    # 0 = aucune ligne vide tant que tu ne cliques pas "Add another".
-    extra = 0  # (mettre 1 si tu veux proposer une rule vide automatiquement)
 
-
+@admin.register(Indicator)
 class IndicatorAdmin(admin.ModelAdmin):
-    # Configuration de la page d'admin pour Indicator.
-    # inlines = liste des "sous-formulaires" à afficher dans la page Indicator.
-    # search_fields = liste des champs sur lesquels on peut faire une recherche.
-    # Résultat : quand tu ouvres/modifies un Indicator, tu peux créer/éditer ses ComputationRule sur la même page.
     inlines = [ComputationRuleInline]
-    search_fields = ['code', 'name']
-    list_display = ('code', 'name', 'unit')
+    search_fields = ("code", "name")
+    list_display = ("code", "name", "dataset", "unit")
+    list_filter = ("dataset",)
+    list_select_related = ("dataset",)
+    ordering = ("code",)
 
-# Configuration de la page d'admin pour ComputationRule.
-# list_filter = liste des filtres applicables dans la page ComputationRule
+
+@admin.register(ComputationRule)
 class ComputationRuleAdmin(admin.ModelAdmin):
-    list_filter = ("operation", "is_active")
+    list_display = ("indicator", "version", "operation", "is_active")
+    list_filter = ("operation", "is_active", "indicator__dataset")
+    search_fields = ("indicator__code", "indicator__name")
+    list_select_related = ("indicator", "indicator__dataset")
+    ordering = ("indicator__code", "-version")
 
-# Configuration de la page d'admin pour Dataset.
-# list_filter = liste des filtres applicables dans la page Dataset
+
+@admin.register(Dataset)
 class DatasetAdmin(admin.ModelAdmin):
-    search_fields = ['code', 'name']
-    list_display = ('code', 'name', 'source_url', 'created_at')
-
-# Enregistre Indicator dans l'admin en utilisant la configuration personnalisée IndicatorAdmin
-# (donc avec l'inline des ComputationRule).
-admin.site.register(Indicator, IndicatorAdmin)
-
-# Enregistre aussi ComputationRule dans l'admin en utilisant la configuration personnalisée IndicatorAdmin
-# Utile pour debug/édition directe, même si en pratique tu utiliseras souvent l'inline.
-admin.site.register(ComputationRule, ComputationRuleAdmin)
-
-# Enregistre Data dans l'admin
-admin.site.register(Dataset,DatasetAdmin)
+    search_fields = ("code", "name")
+    list_display = ("code", "name", "source_url", "created_at")
+    ordering = ("code",)
