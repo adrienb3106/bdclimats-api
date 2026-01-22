@@ -1,5 +1,16 @@
 from django.db import models
 
+class Dataset(models.Model):
+    # "Dataset" = echantillon de données
+    code = models.CharField(max_length=64, unique=True, default="default_name")
+    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=128)
+    source_url = models.URLField(max_length=200)
+    created_at = models.DateField(auto_now=False, auto_now_add=True)
+
+    def __str__(self):
+        # Texte utilisé par Django Admin pour afficher un Dataset.
+        return f"{self.name} — {self.code}"
 
 class Indicator(models.Model):
     # "Indicator" = définition d'un indicateur métier (pas les données elles-mêmes).
@@ -8,21 +19,34 @@ class Indicator(models.Model):
     # Identifiant stable de l'indicateur (ex: "T2M_MEAN", "RR_SUM").
     # unique=True garantit qu'il n'y a jamais deux indicateurs avec le même code.
     #
-    # Note: ton default="default_name" sert surtout à gérer des migrations quand il existe déjà des lignes.
     # En prod, on évite souvent un default "faux" et on préfère renseigner le champ explicitement.
-    code = models.CharField(max_length=64, unique=True, default="default_name")
+    code = models.CharField(max_length=64)
 
     # Nom lisible pour l'admin et l'affichage (ex: "Température moyenne 2m").
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=128)
 
     # Unité de mesure (ex: "°C", "mm"). Ici obligatoire (pas de blank=True).
-    unit = models.CharField(max_length=64)
+    unit = models.CharField(max_length=64, blank=True)
+
+    dataset = models.ForeignKey(
+        Dataset,
+        on_delete=models.PROTECT,
+        related_name="indicators",
+    )
+
+    class Meta:
+        ordering = ("code",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["dataset", "code"],
+                name="uniq_indicator_dataset_code",
+            ),
+        ]
 
     def __str__(self):
         # Texte utilisé par Django Admin (et ailleurs) pour afficher un Indicator.
-        # Sans __str__, tu verrais "Indicator object (2)".
         return f"{self.name} — {self.code}"
-
+    
 
 class ComputationRule(models.Model):
     # "ComputationRule" = une règle (ou recette simplifiée) liée à un Indicator.
@@ -66,5 +90,4 @@ class ComputationRule(models.Model):
 
     def __str__(self):
         # Affichage lisible en admin : code de l'indicator + version.
-        # (On peut enrichir plus tard: operation, actif/inactif...)
         return f"{self.indicator.code} {self.version}"

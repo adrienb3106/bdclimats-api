@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Indicator, ComputationRule
+from .models import Indicator, ComputationRule, Dataset
 
 # Ce fichier configure l'interface Django Admin pour tes modèles.
 # L'idée : décider "comment" Indicator et ComputationRule s'affichent et s'éditent dans /admin.
@@ -24,9 +24,16 @@ class IndicatorAdmin(admin.ModelAdmin):
     search_fields = ['code', 'name']
     list_display = ('code', 'name', 'unit')
 
-
+# Configuration de la page d'admin pour ComputationRule.
+# list_filter = liste des filtres applicables dans la page ComputationRule
 class ComputationRuleAdmin(admin.ModelAdmin):
     list_filter = ("operation", "is_active")
+
+# Configuration de la page d'admin pour Dataset.
+# list_filter = liste des filtres applicables dans la page Dataset
+class DatasetAdmin(admin.ModelAdmin):
+    search_fields = ['code', 'name']
+    list_display = ('code', 'name', 'source_url', 'created_at')
 
 # Enregistre Indicator dans l'admin en utilisant la configuration personnalisée IndicatorAdmin
 # (donc avec l'inline des ComputationRule).
@@ -35,3 +42,6 @@ admin.site.register(Indicator, IndicatorAdmin)
 # Enregistre aussi ComputationRule dans l'admin en utilisant la configuration personnalisée IndicatorAdmin
 # Utile pour debug/édition directe, même si en pratique tu utiliseras souvent l'inline.
 admin.site.register(ComputationRule, ComputationRuleAdmin)
+
+# Enregistre Data dans l'admin
+admin.site.register(Dataset,DatasetAdmin)
