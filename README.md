@@ -13,8 +13,6 @@ Génerer une clé : `python -c "import secrets; print(secrets.token_urlsafe(64))
 ## Démarrage
 - Lancer les services :
   - `docker compose up -d --build`
-- Appliquer les migrations :
-  - `docker compose run --rm web python bdclimats/manage.py migrate`
 
 ## Accès
 - Application : http://localhost:8000

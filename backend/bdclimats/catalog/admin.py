@@ -18,14 +18,20 @@ class ComputationRuleInline(admin.TabularInline):
 class IndicatorAdmin(admin.ModelAdmin):
     # Configuration de la page d'admin pour Indicator.
     # inlines = liste des "sous-formulaires" à afficher dans la page Indicator.
+    # search_fields = liste des champs sur lesquels on peut faire une recherche.
     # Résultat : quand tu ouvres/modifies un Indicator, tu peux créer/éditer ses ComputationRule sur la même page.
     inlines = [ComputationRuleInline]
+    search_fields = ['code', 'name']
+    list_display = ('code', 'name', 'unit')
 
+
+class ComputationRuleAdmin(admin.ModelAdmin):
+    list_filter = ("operation", "is_active")
 
 # Enregistre Indicator dans l'admin en utilisant la configuration personnalisée IndicatorAdmin
 # (donc avec l'inline des ComputationRule).
 admin.site.register(Indicator, IndicatorAdmin)
 
-# Enregistre aussi ComputationRule dans l'admin comme menu séparé.
+# Enregistre aussi ComputationRule dans l'admin en utilisant la configuration personnalisée IndicatorAdmin
 # Utile pour debug/édition directe, même si en pratique tu utiliseras souvent l'inline.
-admin.site.register(ComputationRule)
+admin.site.register(ComputationRule, ComputationRuleAdmin)
