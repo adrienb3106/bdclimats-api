@@ -27,3 +27,14 @@ Génerer une clé : `python -c "import secrets; print(secrets.token_urlsafe(64))
   - `docker compose down`
 - Réinitialiser DB (supprime les données) :
   - `docker compose down -v`
+
+### Créer app Django
+- Dans le container (depuis la racine Django, là où se trouve `manage.py`) :
+`docker compose exec web sh -lc "cd /app/bdclimats && python manage.py startapp catalog"`
+- Ajouter l'app à settings.py
+- Vérifier que la configuration est OK: 
+`docker compose exec web sh -lc "python /app/bdclimats/manage.py check"`
+- Génerer la migration (après avoir modifié le code de l app):
+`docker compose exec web sh -lc "python /app/bdclimats/manage.py makemigrations"`
+- Appliquer la migration: 
+`docker compose exec web sh -lc "python /app/bdclimats/manage.py migrate"`
