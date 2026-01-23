@@ -1,0 +1,33 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BDClimats API - Aide</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.5; }
+    code { background: #f3f3f3; padding: 0.1rem 0.3rem; border-radius: 4px; }
+    pre { background: #f3f3f3; padding: 1rem; border-radius: 8px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>BDClimats API - Aide</h1>
+  <p>Points d'entree principaux :</p>
+  <ul>
+    <li><code>/api/</code> : racine DRF (liste les endpoints)</li>
+    <li><code>/api/indicators/</code> : CRUD Indicators</li>
+    <li><code>/api/datasets/</code> : CRUD Datasets (a venir)</li>
+    <li><code>/api/computation-rules/</code> : CRUD ComputationRules (a venir)</li>
+  </ul>
+
+  <h2>Exemple POST Indicator</h2>
+  <pre>{
+  "dataset": 1,
+  "code": "T2M_MEAN",
+  "name": "Temperature moyenne 2m",
+  "unit": "C"
+}</pre>
+
+  <p>Astuce : l'API root <code>/api/</code> est generee par DRF DefaultRouter.</p>
+</body>
+</html>

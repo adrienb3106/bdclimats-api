@@ -3,7 +3,6 @@ from django.db import models
 class Dataset(models.Model):
     # "Dataset" = echantillon de données
     code = models.CharField(max_length=64, unique=True, default="default_name")
-    name = models.CharField(max_length=64)
     name = models.CharField(max_length=128)
     source_url = models.URLField(max_length=200)
     created_at = models.DateField(auto_now=False, auto_now_add=True)
