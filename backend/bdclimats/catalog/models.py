@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -13,7 +14,7 @@ class Dataset(models.Model):
         if self.code is not None:
             self.code = self.code.strip().upper()
         if not self.code:
-            raise models.ValidationError({"code": "Le code ne peut pas etre vide."})
+            raise ValidationError({"code": "Le code ne peut pas etre vide."})
 
     def save(self, *args, **kwargs):
         # Valide le modele avant sauvegarde.
@@ -51,7 +52,11 @@ class Indicator(models.Model):
         if self.code is not None:
             self.code = self.code.strip().upper()
         if not self.code:
-            raise models.ValidationError({"code": "Le code ne peut pas etre vide."})
+            raise ValidationError({"code": "Le code ne peut pas etre vide."})
+        if self.unit is not None:
+            self.unit = self.unit.strip()
+        if not self.unit:
+            raise ValidationError({"unit": "L unite ne peut pas etre vide."})
 
     def save(self, *args, **kwargs):
         # Valide le modele avant sauvegarde.
@@ -109,3 +114,8 @@ class ComputationRule(models.Model):
     def __str__(self):
         # Libelle lisible (admin, logs, shell).
         return f"{self.indicator.code} {self.version}"
+
+    def clean(self):
+        # Enforce strict positive version at model level.
+        if self.version is not None and self.version <= 0:
+            raise ValidationError({"version": "La version doit etre un entier strictement positif."})

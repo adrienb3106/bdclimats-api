@@ -27,19 +27,25 @@ Backend Django + PostgreSQL, run with Docker Compose.
 - Reset DB (removes data):
   - `docker compose down -v`
 
-## Tests (with reports)
-We provide a simple test runner that generates:
-- a readable log: `reports/test-report.txt`
-- JUnit XML files: `reports/TEST-*.xml`
+## Tests (with reports + coverage)
+Run tests (JUnit XML + log):
+- `python scripts/run_tests.py`
 
-Run tests:
-  - `python .\scripts\run_tests.py`
+Run tests + coverage (JUnit XML + log + coverage.xml):
+- `python scripts/run_tests.py --coverage`
+
+Outputs:
+- `reports/test-report.txt`
+- `reports/TEST-*.xml`
+- `reports/coverage.xml` (coverage run only)
 
 Notes:
 - The Docker image must be rebuilt after dependency changes:
   - `docker compose build`
-- The JUnit XML is produced by a custom Django test runner:
+- JUnit XML is produced by a custom Django test runner:
   - `bdclimats/test_runner.py`
+- Coverage configuration is in:
+  - `backend/.coveragerc`
 
 ## Django app creation (inside container)
 - From the Django root (`/app/bdclimats`):

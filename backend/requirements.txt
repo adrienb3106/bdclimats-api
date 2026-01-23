@@ -7,3 +7,6 @@ psycopg[binary]>=3.1,<4.0
 
 # JUnit XML test runner
 unittest-xml-reporting>=3.2,<4.0
+
+# Test coverage
+coverage>=7.6,<8.0

@@ -1,4 +1,4 @@
-﻿import os
+﻿import argparse
 import subprocess
 import sys
 import time
@@ -10,28 +10,47 @@ LOG_PATH = REPORT_DIR / "test-report.txt"
 
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-cmd = [
-    "docker",
-    "compose",
-    "run",
-    "--rm",
-    "-e",
-    "XML_REPORT_DIR=/app/reports",
-    "web",
-    "sh",
-    "-lc",
-    "cd /app/bdclimats && python manage.py test -v 2 --testrunner=bdclimats.test_runner.XMLTestRunner",
-]
+parser = argparse.ArgumentParser(description="Run tests (optional coverage).")
+parser.add_argument("--coverage", action="store_true", help="Enable coverage reporting.")
+args = parser.parse_args()
+
+if args.coverage:
+    cmd = [
+        "docker",
+        "compose",
+        "run",
+        "--rm",
+        "-e",
+        "XML_REPORT_DIR=/app/reports",
+        "-e",
+        "COVERAGE_FILE=/app/reports/.coverage",
+        "web",
+        "sh",
+        "-lc",
+        "cd /app/bdclimats && "
+        "coverage run --rcfile /app/.coveragerc manage.py test -v 2 "
+        "--testrunner=bdclimats.test_runner.XMLTestRunner; "
+        "status=$?; "
+        "coverage xml --rcfile /app/.coveragerc -o /app/reports/coverage.xml; "
+        "coverage report --rcfile /app/.coveragerc; "
+        "exit $status",
+    ]
+else:
+    cmd = [
+        "docker",
+        "compose",
+        "run",
+        "--rm",
+        "-e",
+        "XML_REPORT_DIR=/app/reports",
+        "web",
+        "sh",
+        "-lc",
+        "cd /app/bdclimats && python manage.py test -v 2 --testrunner=bdclimats.test_runner.XMLTestRunner",
+    ]
 
 start = time.time()
-proc = subprocess.run(
-    cmd,
-    stdout=subprocess.PIPE,
-    stderr=subprocess.STDOUT,
-    text=True,
-    encoding="utf-8",
-    errors="replace",
-)
+proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
 end = time.time()
 
 output = proc.stdout.replace("\x00", "")
@@ -42,5 +61,7 @@ LOG_PATH.write_text(header + output, encoding="utf-8")
 
 print(f"Log written to {LOG_PATH}")
 print(f"JUnit XML written to {REPORT_DIR} (xmlrunner output)")
+if args.coverage:
+    print(f"Coverage XML written to {REPORT_DIR / 'coverage.xml'}")
 
 sys.exit(proc.returncode)

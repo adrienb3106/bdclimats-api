@@ -13,8 +13,8 @@ class XMLTestRunner(DiscoverRunner):
         if "XML_REPORT_DIR" in os.environ:
             self.output_dir = os.environ["XML_REPORT_DIR"]
         else:
-            # Default to repo-level /reports to avoid backend/reports.
-            self.output_dir = str(Path(__file__).resolve().parents[4] / "reports")
+            # Default to /app/reports in container to avoid backend/reports.
+            self.output_dir = str(Path(__file__).resolve().parents[2] / "reports")
 
     def run_suite(self, suite, **kwargs):
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
