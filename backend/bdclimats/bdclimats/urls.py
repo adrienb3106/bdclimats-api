@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
-from api.views import IndicatorViewSet, DatasetViewSet
+from api.views import IndicatorViewSet, DatasetViewSet, ComputationRuleViewSet
 api_router = DefaultRouter()
 api_router.register("indicators", IndicatorViewSet, basename="indicator")
 api_router.register("datasets", DatasetViewSet, basename="dataset")
+api_router.register("ComputationRules", ComputationRuleViewSet, basename="ComputationRule")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

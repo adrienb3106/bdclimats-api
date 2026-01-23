@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from catalog.models import Indicator, Dataset
+from catalog.models import Indicator, Dataset, ComputationRule
 
 class IndicatorSerializer(serializers.ModelSerializer):
     """
@@ -42,10 +42,8 @@ class IndicatorSerializer(serializers.ModelSerializer):
 class DatasetSerializer(serializers.ModelSerializer):
     """
     Serializer explicite pour l'API CRUD de Dataset.
-    - dataset est représenté par son ID (clé étrangère).
     - id est read-only.
     - code est normalisé (strip + upper).
-    - unicité (dataset, code) validée côté API.
     """
     class Meta:
         model = Dataset
@@ -62,4 +60,22 @@ class DatasetSerializer(serializers.ModelSerializer):
         value = value.strip()
         if not value:
             raise serializers.ValidationError("Le nom ne peut pas etre vide.")
+        return value
+    
+class ComputationRuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComputationRule
+        fields = ["id", "indicator", "version", "operation", "is_active"]
+        read_only_fields = ["id"]
+        validators = [
+            UniqueTogetherValidator(
+                queryset=ComputationRule.objects.all(),
+                fields=["indicator", "version"],
+                message="Cette version existe déjà pour cet indicateur.",
+            )
+        ]
+
+    def validate_version(self, value: int) -> int:
+        if value <= 0:
+            raise serializers.ValidationError("La version doit être un entier strictement positif.")
         return value
