@@ -1,27 +1,59 @@
-# bdclimats-api
+﻿# bdclimats-api
 
-Backend Django + PostgreSQL, exécuté via Docker Compose.
+Backend Django + PostgreSQL, run with Docker Compose.
 
-## Prérequis
-- Docker Desktop (avec `docker compose`)
+## Prerequisites
+- Docker Desktop (with `docker compose`)
 
 ## Configuration
-1. Copier `.env.example` en `.env`
-2. Renseigner au minimum `DJANGO_SECRET_KEY` et `POSTGRES_PASSWORD`
+1. Copy `.env.example` to `.env`
+2. Set at least `DJANGO_SECRET_KEY` and `POSTGRES_PASSWORD`
+   - Generate a key:
+     `python -c "import secrets; print(secrets.token_urlsafe(64))"`
 
-## Démarrage
-- Lancer les services :
-  - `docker compose up --build`
-- Appliquer les migrations :
-  - `docker compose run --rm web python bdclimats/manage.py migrate`
+## Start
+- Build and start services:
+  - `docker compose up -d --build`
 
-## Accès
-- Application : http://localhost:8000
+## Access
+- API: http://localhost:8000
+- Admin: http://localhost:8000/admin
 
-## Commandes utiles
-- Créer un superuser :
+## Useful commands
+- Create a superuser:
   - `docker compose run --rm web python bdclimats/manage.py createsuperuser`
-- Arrêter :
+- Stop:
   - `docker compose down`
-- Réinitialiser DB (supprime les données) :
+- Reset DB (removes data):
   - `docker compose down -v`
+
+## Tests (with reports + coverage)
+Run tests (JUnit XML + log):
+- `python scripts/run_tests.py`
+
+Run tests + coverage (JUnit XML + log + coverage.xml):
+- `python scripts/run_tests.py --coverage`
+
+Outputs:
+- `reports/test-report.txt`
+- `reports/TEST-*.xml`
+- `reports/coverage.xml` (coverage run only)
+
+Notes:
+- The Docker image must be rebuilt after dependency changes:
+  - `docker compose build`
+- JUnit XML is produced by a custom Django test runner:
+  - `bdclimats/test_runner.py`
+- Coverage configuration is in:
+  - `backend/.coveragerc`
+
+## Django app creation (inside container)
+- From the Django root (`/app/bdclimats`):
+  - `docker compose exec web sh -lc "cd /app/bdclimats && python manage.py startapp catalog"`
+- Add the app to `settings.py`
+- Check configuration:
+  - `docker compose exec web sh -lc "cd /app/bdclimats && python manage.py check"`
+- Create migrations:
+  - `docker compose exec web sh -lc "cd /app/bdclimats && python manage.py makemigrations"`
+- Apply migrations:
+  - `docker compose exec web sh -lc "cd /app/bdclimats && python manage.py migrate"`

@@ -1,4 +1,4 @@
-"""
+﻿"""
 URL configuration for bdclimats project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -15,8 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.views.generic import TemplateView
+from rest_framework.routers import DefaultRouter
+from api.views import IndicatorViewSet, DatasetViewSet, ComputationRuleViewSet
+api_router = DefaultRouter()
+api_router.register("indicators", IndicatorViewSet, basename="indicator")
+api_router.register("datasets", DatasetViewSet, basename="dataset")
+api_router.register("computation-rules", ComputationRuleViewSet, basename="computation-rule")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(api_router.urls)),
+    path("api/help/", TemplateView.as_view(template_name="api/help.html"), name="api-help"),
 ]
+

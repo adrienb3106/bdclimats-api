@@ -1,0 +1,20 @@
+[run]
+branch = True
+source =
+    bdclimats
+    api
+    catalog
+omit =
+    */migrations/*
+    */tests.py
+    */__init__.py
+    */apps.py
+    */admin.py
+    */wsgi.py
+    */asgi.py
+    */manage.py
+    */settings.py
+
+[report]
+show_missing = True
+skip_covered = True
