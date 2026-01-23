@@ -22,7 +22,7 @@ from api.views import IndicatorViewSet, DatasetViewSet, ComputationRuleViewSet
 api_router = DefaultRouter()
 api_router.register("indicators", IndicatorViewSet, basename="indicator")
 api_router.register("datasets", DatasetViewSet, basename="dataset")
-api_router.register("ComputationRules", ComputationRuleViewSet, basename="ComputationRule")
+api_router.register("computation-rules", ComputationRuleViewSet, basename="computation-rule")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

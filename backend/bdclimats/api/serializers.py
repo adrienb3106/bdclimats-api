@@ -2,14 +2,16 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from catalog.models import Indicator, Dataset, ComputationRule
 
+
 class IndicatorSerializer(serializers.ModelSerializer):
     """
-    Serializer explicite pour l'API CRUD d'Indicator.
-    - dataset est représenté par son ID (clé étrangère).
-    - id est read-only.
-    - code est normalisé (strip + upper).
-    - unicité (dataset, code) validée côté API.
+    Serializer CRUD d Indicator.
+    - dataset est represente par son ID.
+    - id est en lecture seule.
+    - code est normalise (strip + upper).
+    - unicite (dataset, code) validee cote API.
     """
+
     class Meta:
         model = Indicator
         fields = ["id", "dataset", "code", "name", "unit"]
@@ -18,11 +20,12 @@ class IndicatorSerializer(serializers.ModelSerializer):
             UniqueTogetherValidator(
                 queryset=Indicator.objects.all(),
                 fields=["dataset", "code"],
-                message="Ce code existe déjà pour ce dataset.",
+                message="Ce code existe deja pour ce dataset.",
             )
         ]
 
     def validate_code(self, value: str) -> str:
+        # Normalisation defensive cote API.
         value = value.strip().upper()
         if not value:
             raise serializers.ValidationError("Le code ne peut pas etre vide.")
@@ -34,23 +37,29 @@ class IndicatorSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Le nom ne peut pas etre vide.")
         return value
 
-    def validate_unit(self, value: str) -> str: 
+    def validate_unit(self, value: str) -> str:
         if value is None:
-            return value
-        return value.strip()
+            raise serializers.ValidationError("L unite ne peut pas etre vide.")
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("L unite ne peut pas etre vide.")
+        return value
+
 
 class DatasetSerializer(serializers.ModelSerializer):
     """
-    Serializer explicite pour l'API CRUD de Dataset.
-    - id est read-only.
-    - code est normalisé (strip + upper).
+    Serializer CRUD de Dataset.
+    - id est en lecture seule.
+    - code est normalise (strip + upper).
     """
+
     class Meta:
         model = Dataset
         fields = ["id", "code", "name", "source_url", "created_at"]
         read_only_fields = ["id", "created_at"]
-    
+
     def validate_code(self, value: str) -> str:
+        # Normalisation defensive cote API.
         value = value.strip().upper()
         if not value:
             raise serializers.ValidationError("Le code ne peut pas etre vide.")
@@ -61,8 +70,15 @@ class DatasetSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("Le nom ne peut pas etre vide.")
         return value
-    
+
+
 class ComputationRuleSerializer(serializers.ModelSerializer):
+    """
+    Serializer CRUD de ComputationRule.
+    - id est en lecture seule.
+    - unicite (indicator, version) validee cote API.
+    """
+
     class Meta:
         model = ComputationRule
         fields = ["id", "indicator", "version", "operation", "is_active"]
@@ -71,11 +87,11 @@ class ComputationRuleSerializer(serializers.ModelSerializer):
             UniqueTogetherValidator(
                 queryset=ComputationRule.objects.all(),
                 fields=["indicator", "version"],
-                message="Cette version existe déjà pour cet indicateur.",
+                message="Cette version existe deja pour cet indicateur.",
             )
         ]
 
     def validate_version(self, value: int) -> int:
         if value <= 0:
-            raise serializers.ValidationError("La version doit être un entier strictement positif.")
+            raise serializers.ValidationError("La version doit etre un entier strictement positif.")
         return value

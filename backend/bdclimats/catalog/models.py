@@ -1,31 +1,44 @@
 from django.db import models
 
+
 class Dataset(models.Model):
-    # "Dataset" = echantillon de données
-    code = models.CharField(max_length=64, unique=True, default="default_name")
+    # Dataset = source/collection de donnees.
+    code = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=128)
     source_url = models.URLField(max_length=200)
     created_at = models.DateField(auto_now=False, auto_now_add=True)
 
+    def clean(self):
+        # Normalise le code (trim + upper) et refuse le vide.
+        if self.code is not None:
+            self.code = self.code.strip().upper()
+        if not self.code:
+            raise models.ValidationError({"code": "Le code ne peut pas etre vide."})
+
+    def save(self, *args, **kwargs):
+        # Valide le modele avant sauvegarde.
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
     def __str__(self):
-        # Texte utilisé par Django Admin pour afficher un Dataset.
-        return f"{self.name} — {self.code}"
+        # Libelle lisible (admin, logs, shell).
+        return f"{self.name} - {self.code}"
+
 
 class Indicator(models.Model):
-    # "Indicator" = définition d'un indicateur métier (pas les données elles-mêmes).
-    # Chaque instance correspond à une ligne en base (créée via /admin ou API plus tard).
+    # Indicateur metier (definition, pas les valeurs).
+    # Une ligne par indicateur (admin ou API).
 
-    # Identifiant stable de l'indicateur (ex: "T2M_MEAN", "RR_SUM").
-    # unique=True garantit qu'il n'y a jamais deux indicateurs avec le même code.
-    #
-    # En prod, on évite souvent un default "faux" et on préfère renseigner le champ explicitement.
+    # Identifiant stable (ex: "T2M_MEAN", "RR_SUM").
+    # Unicite assuree par la contrainte (dataset, code).
+    # Pas de default: le code doit etre fourni.
     code = models.CharField(max_length=64)
 
-    # Nom lisible pour l'admin et l'affichage (ex: "Température moyenne 2m").
+    # Nom lisible (admin/UI).
     name = models.CharField(max_length=128)
 
-    # Unité de mesure (ex: "°C", "mm"). Ici obligatoire (pas de blank=True).
-    unit = models.CharField(max_length=64, blank=True)
+    # Unite de mesure (ex: "C", "mm").
+    unit = models.CharField(max_length=64)
 
     dataset = models.ForeignKey(
         Dataset,
@@ -33,7 +46,20 @@ class Indicator(models.Model):
         related_name="indicators",
     )
 
+    def clean(self):
+        # Normalise le code (trim + upper) et refuse le vide.
+        if self.code is not None:
+            self.code = self.code.strip().upper()
+        if not self.code:
+            raise models.ValidationError({"code": "Le code ne peut pas etre vide."})
+
+    def save(self, *args, **kwargs):
+        # Valide le modele avant sauvegarde.
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
     class Meta:
+        # Tri par defaut et unicite par dataset.
         ordering = ("code",)
         constraints = [
             models.UniqueConstraint(
@@ -43,29 +69,23 @@ class Indicator(models.Model):
         ]
 
     def __str__(self):
-        # Texte utilisé par Django Admin (et ailleurs) pour afficher un Indicator.
-        return f"{self.name} — {self.code}"
-    
+        # Libelle lisible (admin, logs, shell).
+        return f"{self.name} - {self.code}"
+
 
 class ComputationRule(models.Model):
-    # "ComputationRule" = une règle (ou recette simplifiée) liée à un Indicator.
-    # Le champ indicator (ForeignKey) fait la relation 1 Indicator -> N Rules.
+    # Regle de calcul liee a un indicateur.
+    # Un indicateur -> plusieurs regles.
 
     class Operation(models.TextChoices):
-        # TextChoices = ensemble de valeurs autorisées pour operation.
-        # La valeur stockée en DB est le 1er élément (ex: "avg"),
-        # le label affiché dans l'admin est le 2e (ex: "Average").
-        #
-        # Important : ça ne fait pas le calcul tout seul, c'est juste une valeur contrôlée.
+        # Valeurs autorisees pour operation.
         AVG = "avg", "Average"
         MIN = "min", "Minimum"
         MAX = "max", "Maximum"
         SUM = "sum", "Sum"
 
     class Meta:
-        # Contraintes au niveau "table" (DB).
-        # Ici : pour un même indicator, on interdit deux rules avec la même version.
-        # => (indicator, version) doit être unique.
+        # Version unique par indicateur.
         constraints = [
             models.UniqueConstraint(
                 fields=["indicator", "version"],
@@ -73,20 +93,19 @@ class ComputationRule(models.Model):
             ),
         ]
 
-    # Lien vers l'indicateur parent.
-    # on_delete=models.CASCADE => si l'Indicator est supprimé, ses rules le sont aussi.
+    # Indicateur parent (suppression en cascade).
     indicator = models.ForeignKey("Indicator", on_delete=models.CASCADE)
 
-    # Numéro de version de la recette/règle (1, 2, 3...). PositiveIntegerField évite les versions négatives.
+    # Version de regle (entier positif).
     version = models.PositiveIntegerField()
 
-    # Type d'opération (contrainte par Operation.choices).
-    # default=Operation.AVG => si tu ne choisis rien, ça met "avg".
+    # Type d operation (contraint par choices).
+    # Default: AVG.
     operation = models.CharField(max_length=16, choices=Operation.choices, default=Operation.AVG)
 
-    # Permet d'activer/désactiver une règle (pratique si tu gardes un historique).
+    # Active/inactive (utile pour l historique).
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        # Affichage lisible en admin : code de l'indicator + version.
+        # Libelle lisible (admin, logs, shell).
         return f"{self.indicator.code} {self.version}"
