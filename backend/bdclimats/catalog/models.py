@@ -6,7 +6,7 @@ class Dataset(models.Model):
     # Dataset = source/collection de donnees.
     code = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=128)
-    source_url = models.URLField(max_length=200)
+    source_url = models.CharField(max_length=200)
     created_at = models.DateField(auto_now=False, auto_now_add=True)
 
     def clean(self):
@@ -110,6 +110,9 @@ class ComputationRule(models.Model):
 
     # Active/inactive (utile pour l historique).
     is_active = models.BooleanField(default=True)
+
+    # Parametres libres pour la regle (structure JSON flexible).
+    params = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         # Libelle lisible (admin, logs, shell).

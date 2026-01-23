@@ -52,7 +52,6 @@ class DatasetSerializer(serializers.ModelSerializer):
     - id est en lecture seule.
     - code est normalise (strip + upper).
     """
-
     class Meta:
         model = Dataset
         fields = ["id", "code", "name", "source_url", "created_at"]
@@ -81,7 +80,7 @@ class ComputationRuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ComputationRule
-        fields = ["id", "indicator", "version", "operation", "is_active"]
+        fields = ["id", "indicator", "version", "operation", "is_active", "params"]
         read_only_fields = ["id"]
         validators = [
             UniqueTogetherValidator(
@@ -94,4 +93,30 @@ class ComputationRuleSerializer(serializers.ModelSerializer):
     def validate_version(self, value: int) -> int:
         if value <= 0:
             raise serializers.ValidationError("La version doit etre un entier strictement positif.")
+        return value
+    
+    def validate_params(self, value):
+        if value is None:
+            return {}
+
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("params doit être un objet JSON (dictionnaire).")
+
+        allowed_keys = {"dropna", "min_count"}
+        unknown = set(value.keys()) - allowed_keys
+        if unknown:
+            raise serializers.ValidationError(
+                {"params": f"Clés non supportées: {sorted(unknown)}"}
+            )
+
+        if "dropna" in value and not isinstance(value["dropna"], bool):
+            raise serializers.ValidationError({"dropna": "doit être un booléen (true/false)."})
+
+        if "min_count" in value:
+            mc = value["min_count"]
+            if not isinstance(mc, int):
+                raise serializers.ValidationError({"min_count": "doit être un entier."})
+            if mc < 1:
+                raise serializers.ValidationError({"min_count": "doit être >= 1."})
+
         return value
