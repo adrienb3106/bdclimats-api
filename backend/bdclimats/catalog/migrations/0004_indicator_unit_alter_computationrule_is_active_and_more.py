@@ -6,29 +6,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0003_indicator_name_alter_indicator_code'),
+        ("catalog", "0003_indicator_name_alter_indicator_code"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='indicator',
-            name='unit',
-            field=models.CharField(default='TODO', max_length=64),
+            model_name="indicator",
+            name="unit",
+            field=models.CharField(default="TODO", max_length=64),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='computationrule',
-            name='is_active',
+            model_name="computationrule",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='computationrule',
-            name='operation',
+            model_name="computationrule",
+            name="operation",
             field=models.CharField(max_length=64),
         ),
         migrations.AlterField(
-            model_name='computationrule',
-            name='version',
+            model_name="computationrule",
+            name="version",
             field=models.PositiveIntegerField(),
         ),
     ]

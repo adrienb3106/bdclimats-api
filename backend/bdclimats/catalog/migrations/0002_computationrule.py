@@ -7,18 +7,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0001_initial'),
+        ("catalog", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ComputationRule',
+            name="ComputationRule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('version', models.IntegerField()),
-                ('operation', models.CharField(max_length=256)),
-                ('is_active', models.BooleanField()),
-                ('indicator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='catalog.indicator')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("version", models.IntegerField()),
+                ("operation", models.CharField(max_length=256)),
+                ("is_active", models.BooleanField()),
+                (
+                    "indicator",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="catalog.indicator",
+                    ),
+                ),
             ],
         ),
     ]

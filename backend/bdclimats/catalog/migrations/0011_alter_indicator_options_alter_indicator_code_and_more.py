@@ -6,27 +6,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0010_create_default_dataset'),
+        ("catalog", "0010_create_default_dataset"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='indicator',
-            options={'ordering': ('code',)},
+            name="indicator",
+            options={"ordering": ("code",)},
         ),
         migrations.AlterField(
-            model_name='indicator',
-            name='code',
+            model_name="indicator",
+            name="code",
             field=models.CharField(max_length=64, unique=True),
         ),
         migrations.AlterField(
-            model_name='indicator',
-            name='name',
+            model_name="indicator",
+            name="name",
             field=models.CharField(max_length=128),
         ),
         migrations.AlterField(
-            model_name='indicator',
-            name='unit',
+            model_name="indicator",
+            name="unit",
             field=models.CharField(blank=True, max_length=64),
         ),
     ]

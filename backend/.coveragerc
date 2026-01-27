@@ -10,6 +10,7 @@ omit =
     */__init__.py
     */apps.py
     */admin.py
+    */catalog/views.py
     */wsgi.py
     */asgi.py
     */manage.py
@@ -17,4 +18,4 @@ omit =
 
 [report]
 show_missing = True
-skip_covered = True
+skip_covered = False

@@ -6,13 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0005_alter_computationrule_operation'),
+        ("catalog", "0005_alter_computationrule_operation"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='computationrule',
-            name='operation',
-            field=models.CharField(choices=[('avg', 'Average'), ('min', 'Minimum'), ('max', 'Maximum'), ('sum', 'Sum')], default='avg', max_length=16),
+            model_name="computationrule",
+            name="operation",
+            field=models.CharField(
+                choices=[
+                    ("avg", "Average"),
+                    ("min", "Minimum"),
+                    ("max", "Maximum"),
+                    ("sum", "Sum"),
+                ],
+                default="avg",
+                max_length=16,
+            ),
         ),
     ]

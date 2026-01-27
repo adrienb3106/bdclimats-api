@@ -6,19 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0002_computationrule'),
+        ("catalog", "0002_computationrule"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='indicator',
-            name='name',
-            field=models.CharField(default='TODO', max_length=64),
+            model_name="indicator",
+            name="name",
+            field=models.CharField(default="TODO", max_length=64),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='indicator',
-            name='code',
-            field=models.CharField(default='default_name', max_length=64, unique=True),
+            model_name="indicator",
+            name="code",
+            field=models.CharField(default="default_name", max_length=64, unique=True),
         ),
     ]
