@@ -1,5 +1,3 @@
-import pytest
-from rest_framework import serializers
 
 from api.compute_serializers import ComputeRequestSerializer
 
