@@ -19,6 +19,31 @@ Backend Django + PostgreSQL, run with Docker Compose.
 - API: http://localhost:8000
 - Admin: http://localhost:8000/admin
 
+## Compute endpoint (data input)
+The compute endpoint accepts points in **ISO 8601** with a `value` (nullable).
+
+Two input modes are supported:
+
+1) **Inline data (default)**  
+Send points directly in the request body:
+```json
+{"values":[{"timestamp":"2026-01-27T10:00:00Z","value":12.3},{"timestamp":"2026-01-27T11:00:00+01:00","value":null}]}
+```
+
+2) **Dataset source URL**  
+Set `use_dataset=true` and define `Dataset.source_url`:
+- `file://...` **only in DEBUG** (dev mode)
+- `http(s)://...` in dev and prod
+
+The URL must return JSON like:
+```json
+{"values":[{"timestamp":"2026-01-27T10:00:00Z","value":12.3}]}
+```
+
+Notes:
+- `timestamp` must be ISO 8601 (timezone optional)
+- `value` can be a number or `null`
+
 ## Useful commands
 - Create a superuser:
   - `docker compose run --rm web python bdclimats/manage.py createsuperuser`

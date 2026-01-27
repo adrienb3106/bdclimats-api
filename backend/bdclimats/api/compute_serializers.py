@@ -1,23 +1,31 @@
 from rest_framework import serializers
 
 
+class PointSerializer(serializers.Serializer):
+    timestamp = serializers.DateTimeField()
+    value = serializers.FloatField(allow_null=True)
+
+
 class ComputeRequestSerializer(serializers.Serializer):
     """
     Payload d'entrée pour POST /api/indicators/<id>/compute/
 
     Exemple:
     {
-      "values": [12.3, 11.8, null, 13.0],
+      "values": [
+        {"timestamp": "2026-01-27T10:00:00Z", "value": 12.3},
+        {"timestamp": "2026-01-27T11:00:00+01:00", "value": null}
+      ],
       "rule_version": 2
     }
     """
     use_dataset = serializers.BooleanField(required=False, default=False)
     
     values = serializers.ListField(
-        child=serializers.FloatField(allow_null=True),
+        child=PointSerializer(),
         allow_empty=False,
         required=False,
-        help_text="Liste de valeurs numériques (null autorisé si dropna=true).",
+        help_text="Liste de points {timestamp, value} (value null autorisé si dropna=true).",
     )
 
     rule_version = serializers.IntegerField(
@@ -27,12 +35,12 @@ class ComputeRequestSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
-        # Si on ne calcule pas ? partir du dataset, "values" est obligatoire.
+        # Si on ne calcule pas à partir du dataset, "values" est obligatoire.
         use_dataset = attrs.get("use_dataset", False)
         values = attrs.get("values")
         if not use_dataset:
             if values is None:
                 raise serializers.ValidationError({"values": "This field is required."})
-            if all(v is None for v in values):
+            if all(point.get("value") is None for point in values):
                 raise serializers.ValidationError({"values": "Toutes les valeurs sont nulles."})
         return attrs

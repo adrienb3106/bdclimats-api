@@ -1,10 +1,82 @@
+import json
+import tempfile
+from pathlib import Path
+from unittest.mock import Mock, patch
+
 from rest_framework import status
 from rest_framework.test import APITestCase
+from django.test import override_settings
 
 from catalog.models import ComputationRule, Dataset, Indicator
 
 
 class ApiValidationTests(APITestCase):
+    @override_settings(DEBUG=True)
+    def test_compute_use_dataset_file(self):
+        # GOAL: compute using dataset file:// in DEBUG mode.
+        # TESTED: file:// source_url is read and used when use_dataset=true.
+        # TYPE: API test (compute endpoint, file dataset).
+        with tempfile.TemporaryDirectory() as tmpdir:
+            data_path = Path(tmpdir) / "sample-values.json"
+            payload = {
+                "values": [
+                    {"timestamp": "2026-01-27T10:00:00Z", "value": 10.0},
+                    {"timestamp": "2026-01-27T11:00:00Z", "value": 20.0},
+                ]
+            }
+            data_path.write_text(json.dumps(payload), encoding="utf-8")
+            dataset = Dataset.objects.create(
+                code="D1",
+                name="Test",
+                source_url=data_path.absolute().as_uri(),
+            )
+            indicator = Indicator.objects.create(code="T2M", name="Temp", unit="C", dataset=dataset)
+            ComputationRule.objects.create(indicator=indicator, version=1, operation="avg", is_active=True)
+
+            response = self.client.post(
+                f"/api/indicators/{indicator.id}/compute/",
+                {"use_dataset": True},
+                format="json",
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data["result"], 15.0)
+            self.assertEqual(response.data["input_count"], 2)
+            self.assertEqual(response.data["used_count"], 2)
+
+    @patch("api.views.requests.get")
+    def test_compute_use_dataset_http(self, mock_get):
+        # GOAL: compute using dataset http(s) source.
+        # TESTED: http(s) source_url is read and used when use_dataset=true.
+        # TYPE: API test (compute endpoint, http dataset).
+        mock_resp = Mock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"Content-Type": "application/json"}
+        mock_resp.json.return_value = {
+            "values": [
+                {"timestamp": "2026-01-27T10:00:00Z", "value": 5.0},
+                {"timestamp": "2026-01-27T11:00:00Z", "value": 15.0},
+            ]
+        }
+        mock_get.return_value = mock_resp
+
+        dataset = Dataset.objects.create(
+            code="D1",
+            name="Test",
+            source_url="https://example.com/data.json",
+        )
+        indicator = Indicator.objects.create(code="T2M", name="Temp", unit="C", dataset=dataset)
+        ComputationRule.objects.create(indicator=indicator, version=1, operation="avg", is_active=True)
+
+        response = self.client.post(
+            f"/api/indicators/{indicator.id}/compute/",
+            {"use_dataset": True},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["result"], 10.0)
+        self.assertEqual(response.data["input_count"], 2)
+        self.assertEqual(response.data["used_count"], 2)
+
     def test_create_dataset_normalizes_code(self):
         # GOAL: verify API returns normalized codes.
         # TESTED: Dataset.code is trimmed + uppercased by validation.
