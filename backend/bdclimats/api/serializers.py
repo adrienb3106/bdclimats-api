@@ -44,6 +44,7 @@ class DatasetSerializer(serializers.ModelSerializer):
     - id est en lecture seule.
     - code est normalise (strip + upper).
     """
+
     class Meta:
         model = Dataset
         fields = ["id", "code", "name", "source_url", "created_at"]
@@ -84,15 +85,19 @@ class ComputationRuleSerializer(serializers.ModelSerializer):
 
     def validate_version(self, value: int) -> int:
         if value <= 0:
-            raise serializers.ValidationError("La version doit etre un entier strictement positif.")
+            raise serializers.ValidationError(
+                "La version doit etre un entier strictement positif."
+            )
         return value
-    
+
     def validate_params(self, value):
         if value is None:
             return {}
 
         if not isinstance(value, dict):
-            raise serializers.ValidationError("params doit être un objet JSON (dictionnaire).")
+            raise serializers.ValidationError(
+                "params doit être un objet JSON (dictionnaire)."
+            )
 
         allowed_keys = {"dropna", "min_count"}
         unknown = set(value.keys()) - allowed_keys
@@ -102,7 +107,9 @@ class ComputationRuleSerializer(serializers.ModelSerializer):
             )
 
         if "dropna" in value and not isinstance(value["dropna"], bool):
-            raise serializers.ValidationError({"dropna": "doit être un booléen (true/false)."})
+            raise serializers.ValidationError(
+                {"dropna": "doit être un booléen (true/false)."}
+            )
 
         if "min_count" in value:
             mc = value["min_count"]

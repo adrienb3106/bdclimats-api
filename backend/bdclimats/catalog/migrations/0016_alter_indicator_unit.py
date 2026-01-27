@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0015_alter_dataset_source_url'),
+        ("catalog", "0015_alter_dataset_source_url"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='indicator',
-            name='unit',
+            model_name="indicator",
+            name="unit",
             field=models.CharField(blank=True, max_length=64, null=True),
         ),
     ]

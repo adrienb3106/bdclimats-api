@@ -82,6 +82,12 @@ Outputs:
 - `reports/coverage.xml` (coverage run only)
 - `reports/htmlcov/index.html` (coverage HTML report)
 
+## Lint / Format
+- Format (Black):
+  - `python -m black backend`
+- Lint (Ruff):
+  - `python -m ruff check backend`
+
 Notes:
 - The Docker image must be rebuilt after dependency changes:
   - `docker compose build`

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0013_alter_dataset_code_alter_indicator_unit'),
+        ("catalog", "0013_alter_dataset_code_alter_indicator_unit"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='computationrule',
-            name='params',
+            model_name="computationrule",
+            name="params",
             field=models.JSONField(blank=True, default=dict),
         ),
     ]

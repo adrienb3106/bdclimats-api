@@ -6,17 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0011_alter_indicator_options_alter_indicator_code_and_more'),
+        ("catalog", "0011_alter_indicator_options_alter_indicator_code_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='indicator',
-            name='code',
+            model_name="indicator",
+            name="code",
             field=models.CharField(max_length=64),
         ),
         migrations.AddConstraint(
-            model_name='indicator',
-            constraint=models.UniqueConstraint(fields=('dataset', 'code'), name='uniq_indicator_dataset_code'),
+            model_name="indicator",
+            constraint=models.UniqueConstraint(
+                fields=("dataset", "code"), name="uniq_indicator_dataset_code"
+            ),
         ),
     ]

@@ -19,8 +19,9 @@ class ComputeRequestSerializer(serializers.Serializer):
       "rule_version": 2
     }
     """
+
     use_dataset = serializers.BooleanField(required=False, default=False)
-    
+
     values = serializers.ListField(
         child=PointSerializer(),
         allow_empty=False,
@@ -42,5 +43,7 @@ class ComputeRequestSerializer(serializers.Serializer):
             if values is None:
                 raise serializers.ValidationError({"values": "This field is required."})
             if all(point.get("value") is None for point in values):
-                raise serializers.ValidationError({"values": "Toutes les valeurs sont nulles."})
+                raise serializers.ValidationError(
+                    {"values": "Toutes les valeurs sont nulles."}
+                )
         return attrs

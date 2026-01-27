@@ -104,7 +104,9 @@ class ComputationRule(models.Model):
 
     # Type d operation (contraint par choices).
     # Default: AVG.
-    operation = models.CharField(max_length=16, choices=Operation.choices, default=Operation.AVG)
+    operation = models.CharField(
+        max_length=16, choices=Operation.choices, default=Operation.AVG
+    )
 
     # Active/inactive (utile pour l historique).
     is_active = models.BooleanField(default=True)
@@ -119,4 +121,6 @@ class ComputationRule(models.Model):
     def clean(self):
         # Enforce strict positive version at model level.
         if self.version is not None and self.version <= 0:
-            raise ValidationError({"version": "La version doit etre un entier strictement positif."})
+            raise ValidationError(
+                {"version": "La version doit etre un entier strictement positif."}
+            )

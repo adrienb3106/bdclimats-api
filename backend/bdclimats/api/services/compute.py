@@ -19,7 +19,7 @@ def compute(operation: str, values: Iterable[float]) -> float:
 
     if not values_list:
         raise ComputeError("Impossible de calculer: aucune valeur.")
-    
+
     op = operation.strip().lower()
 
     if op == "avg":

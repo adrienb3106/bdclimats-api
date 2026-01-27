@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0014_computationrule_params'),
+        ("catalog", "0014_computationrule_params"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dataset',
-            name='source_url',
+            model_name="dataset",
+            name="source_url",
             field=models.CharField(max_length=200),
         ),
     ]

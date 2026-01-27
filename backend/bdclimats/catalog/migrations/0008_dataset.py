@@ -6,18 +6,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0007_add_unique_indicator_version'),
+        ("catalog", "0007_add_unique_indicator_version"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Dataset',
+            name="Dataset",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(default='default_name', max_length=64, unique=True)),
-                ('name', models.CharField(max_length=128)),
-                ('source_url', models.URLField()),
-                ('created_at', models.DateField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(
+                        default="default_name", max_length=64, unique=True
+                    ),
+                ),
+                ("name", models.CharField(max_length=128)),
+                ("source_url", models.URLField()),
+                ("created_at", models.DateField(auto_now_add=True)),
             ],
         ),
     ]

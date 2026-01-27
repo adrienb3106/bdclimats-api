@@ -11,9 +11,17 @@ from catalog.models import ComputationRule, Dataset, Indicator
 pytestmark = pytest.mark.django_db
 
 
-def _make_indicator(rule_params=None, operation="avg", is_active=True, version=1, source_url="https://example.com/data.json"):
+def _make_indicator(
+    rule_params=None,
+    operation="avg",
+    is_active=True,
+    version=1,
+    source_url="https://example.com/data.json",
+):
     dataset = Dataset.objects.create(code="D1", name="Test", source_url=source_url)
-    indicator = Indicator.objects.create(code="T2M", name="Temp", unit="C", dataset=dataset)
+    indicator = Indicator.objects.create(
+        code="T2M", name="Temp", unit="C", dataset=dataset
+    )
     ComputationRule.objects.create(
         indicator=indicator,
         version=version,
@@ -62,8 +70,12 @@ def test_compute_no_active_rule(api_client):
 
 
 def test_compute_no_rule_exists(api_client):
-    dataset = Dataset.objects.create(code="D1", name="Test", source_url="https://example.com")
-    indicator = Indicator.objects.create(code="T2M", name="Temp", unit="C", dataset=dataset)
+    dataset = Dataset.objects.create(
+        code="D1", name="Test", source_url="https://example.com"
+    )
+    indicator = Indicator.objects.create(
+        code="T2M", name="Temp", unit="C", dataset=dataset
+    )
     response = api_client.post(
         f"/api/indicators/{indicator.id}/compute/",
         {"values": [{"timestamp": "2026-01-27T10:00:00Z", "value": 1.0}]},
@@ -128,11 +140,17 @@ def test_compute_unknown_operation(api_client):
 
 
 def test_use_dataset_missing_source_url(api_client):
-    dataset = Dataset.objects.create(code="D1", name="Test", source_url="https://example.com")
+    dataset = Dataset.objects.create(
+        code="D1", name="Test", source_url="https://example.com"
+    )
     Dataset.objects.filter(pk=dataset.id).update(source_url="")
     dataset.refresh_from_db()
-    indicator = Indicator.objects.create(code="T2M", name="Temp", unit="C", dataset=dataset)
-    ComputationRule.objects.create(indicator=indicator, version=1, operation="avg", is_active=True)
+    indicator = Indicator.objects.create(
+        code="T2M", name="Temp", unit="C", dataset=dataset
+    )
+    ComputationRule.objects.create(
+        indicator=indicator, version=1, operation="avg", is_active=True
+    )
     response = api_client.post(
         f"/api/indicators/{indicator.id}/compute/",
         {"use_dataset": True},
@@ -238,7 +256,9 @@ def test_use_dataset_http_invalid_timestamp(mock_get, api_client):
     mock_resp = Mock()
     mock_resp.raise_for_status.return_value = None
     mock_resp.headers = {"Content-Type": "application/json"}
-    mock_resp.json.return_value = {"values": [{"timestamp": "not-a-date", "value": 1.0}]}
+    mock_resp.json.return_value = {
+        "values": [{"timestamp": "not-a-date", "value": 1.0}]
+    }
     mock_get.return_value = mock_resp
 
     response = api_client.post(
@@ -255,7 +275,9 @@ def test_use_dataset_http_invalid_value_type(mock_get, api_client):
     mock_resp = Mock()
     mock_resp.raise_for_status.return_value = None
     mock_resp.headers = {"Content-Type": "application/json"}
-    mock_resp.json.return_value = {"values": [{"timestamp": "2026-01-27T10:00:00Z", "value": "oops"}]}
+    mock_resp.json.return_value = {
+        "values": [{"timestamp": "2026-01-27T10:00:00Z", "value": "oops"}]
+    }
     mock_get.return_value = mock_resp
 
     response = api_client.post(
@@ -269,7 +291,10 @@ def test_use_dataset_http_invalid_value_type(mock_get, api_client):
 def test_use_dataset_file_disallowed_in_prod(api_client, settings, tmp_path):
     settings.DEBUG = False
     data_path = tmp_path / "data.json"
-    data_path.write_text('{"values":[{"timestamp":"2026-01-27T10:00:00Z","value":1.0}]}', encoding="utf-8")
+    data_path.write_text(
+        '{"values":[{"timestamp":"2026-01-27T10:00:00Z","value":1.0}]}',
+        encoding="utf-8",
+    )
     indicator, _ = _make_indicator(source_url=data_path.absolute().as_uri())
     response = api_client.post(
         f"/api/indicators/{indicator.id}/compute/",
@@ -279,13 +304,18 @@ def test_use_dataset_file_disallowed_in_prod(api_client, settings, tmp_path):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_use_dataset_file_windows_path_branch(api_client, settings, tmp_path, monkeypatch):
+def test_use_dataset_file_windows_path_branch(
+    api_client, settings, tmp_path, monkeypatch
+):
     settings.DEBUG = True
     monkeypatch.chdir(tmp_path)
     win_path = tmp_path / "C:" / "tmp"
     win_path.mkdir(parents=True)
     data_path = win_path / "data.json"
-    data_path.write_text('{"values":[{"timestamp":"2026-01-27T10:00:00Z","value":1.0}]}', encoding="utf-8")
+    data_path.write_text(
+        '{"values":[{"timestamp":"2026-01-27T10:00:00Z","value":1.0}]}',
+        encoding="utf-8",
+    )
     indicator, _ = _make_indicator(source_url="file:///C:/tmp/data.json")
     response = api_client.post(
         f"/api/indicators/{indicator.id}/compute/",

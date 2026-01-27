@@ -7,14 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0008_dataset'),
+        ("catalog", "0008_dataset"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='indicator',
-            name='dataset',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.PROTECT, related_name='indicators', to='catalog.dataset'),
+            model_name="indicator",
+            name="dataset",
+            field=models.ForeignKey(
+                default=0,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="indicators",
+                to="catalog.dataset",
+            ),
             preserve_default=False,
         ),
     ]

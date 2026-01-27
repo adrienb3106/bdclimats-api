@@ -30,7 +30,9 @@ def test_create_dataset_rejects_empty_code(api_client):
 
 
 def test_create_indicator_allows_empty_unit(api_client):
-    dataset = Dataset.objects.create(code="D1", name="Test", source_url="https://example.com")
+    dataset = Dataset.objects.create(
+        code="D1", name="Test", source_url="https://example.com"
+    )
     response = api_client.post(
         "/api/indicators/",
         {"dataset": dataset.id, "code": "RR_SUM", "name": "Rain", "unit": ""},
@@ -40,7 +42,9 @@ def test_create_indicator_allows_empty_unit(api_client):
 
 
 def test_create_indicator_rejects_empty_code(api_client):
-    dataset = Dataset.objects.create(code="D1", name="Test", source_url="https://example.com")
+    dataset = Dataset.objects.create(
+        code="D1", name="Test", source_url="https://example.com"
+    )
     response = api_client.post(
         "/api/indicators/",
         {"dataset": dataset.id, "code": "  ", "name": "Rain", "unit": "mm"},
@@ -50,11 +54,20 @@ def test_create_indicator_rejects_empty_code(api_client):
 
 
 def test_create_rule_rejects_non_positive_version(api_client):
-    dataset = Dataset.objects.create(code="D1", name="Test", source_url="https://example.com")
-    indicator = Indicator.objects.create(code="T2M", name="Temp", unit="C", dataset=dataset)
+    dataset = Dataset.objects.create(
+        code="D1", name="Test", source_url="https://example.com"
+    )
+    indicator = Indicator.objects.create(
+        code="T2M", name="Temp", unit="C", dataset=dataset
+    )
     response = api_client.post(
         "/api/computation-rules/",
-        {"indicator": indicator.id, "version": 0, "operation": "avg", "is_active": True},
+        {
+            "indicator": indicator.id,
+            "version": 0,
+            "operation": "avg",
+            "is_active": True,
+        },
         format="json",
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -75,8 +88,12 @@ def test_compute_use_dataset_file(api_client, settings, tmp_path):
         name="Test",
         source_url=data_path.absolute().as_uri(),
     )
-    indicator = Indicator.objects.create(code="T2M", name="Temp", unit="C", dataset=dataset)
-    ComputationRule.objects.create(indicator=indicator, version=1, operation="avg", is_active=True)
+    indicator = Indicator.objects.create(
+        code="T2M", name="Temp", unit="C", dataset=dataset
+    )
+    ComputationRule.objects.create(
+        indicator=indicator, version=1, operation="avg", is_active=True
+    )
 
     response = api_client.post(
         f"/api/indicators/{indicator.id}/compute/",
@@ -105,8 +122,12 @@ def test_compute_use_dataset_http(mock_get, api_client):
         name="Test",
         source_url="https://example.com/data.json",
     )
-    indicator = Indicator.objects.create(code="T2M", name="Temp", unit="C", dataset=dataset)
-    ComputationRule.objects.create(indicator=indicator, version=1, operation="avg", is_active=True)
+    indicator = Indicator.objects.create(
+        code="T2M", name="Temp", unit="C", dataset=dataset
+    )
+    ComputationRule.objects.create(
+        indicator=indicator, version=1, operation="avg", is_active=True
+    )
 
     response = api_client.post(
         f"/api/indicators/{indicator.id}/compute/",

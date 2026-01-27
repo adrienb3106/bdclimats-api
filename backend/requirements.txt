@@ -15,3 +15,7 @@ coverage>=7.6,<8.0
 # Pytest
 pytest>=7.4,<9.0
 pytest-django>=4.5,<5.0
+
+# Lint/Format
+black>=24.4,<25.0
+ruff>=0.6,<1.0

@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0012_alter_indicator_code_and_more'),
+        ("catalog", "0012_alter_indicator_code_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dataset',
-            name='code',
+            model_name="dataset",
+            name="code",
             field=models.CharField(max_length=64, unique=True),
         ),
         migrations.AlterField(
-            model_name='indicator',
-            name='unit',
+            model_name="indicator",
+            name="unit",
             field=models.CharField(max_length=64),
         ),
     ]
