@@ -65,9 +65,16 @@ If you start the server inside `data/`, the URL becomes:
 ## Tests (with reports + coverage)
 Run tests (JUnit XML + log):
 - `python scripts/run_tests.py`
+  - Runs all tests (TV + TU)
 
 Run tests + coverage (JUnit XML + log + coverage.xml):
 - `python scripts/run_tests.py --coverage`
+
+Test layout:
+- `backend/bdclimats/tests/api/tv/` : tests fonctionnels/validation (API)
+- `backend/bdclimats/tests/api/tu/` : tests unitaires (API)
+- `backend/bdclimats/tests/catalog/tv/` : tests validation (models)
+- `backend/bdclimats/tests/catalog/tu/` : tests unitaires (models)
 
 Outputs:
 - `reports/test-report.txt`
@@ -78,8 +85,6 @@ Outputs:
 Notes:
 - The Docker image must be rebuilt after dependency changes:
   - `docker compose build`
-- JUnit XML is produced by a custom Django test runner:
-  - `bdclimats/test_runner.py`
 - Coverage configuration is in:
   - `backend/.coveragerc`
 
