@@ -84,9 +84,9 @@ Outputs:
 
 ## Lint / Format
 - Format (Black):
-  - `python -m black backend`
+  - `python -m black backend` (/app si dans docker)
 - Lint (Ruff):
-  - `python -m ruff check backend`
+  - `python -m ruff check backend` (/app si dans docker)
 
 Notes:
 - The Docker image must be rebuilt after dependency changes:
