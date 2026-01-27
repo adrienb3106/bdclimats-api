@@ -1,19 +1,91 @@
-from rest_framework import viewsets, status
+import json
+from pathlib import Path
+from urllib.parse import urlparse
+
+import requests
+from django.conf import settings
+from django.utils.dateparse import parse_datetime
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.conf import settings
 
-
-from catalog.models import Indicator, Dataset, ComputationRule
-from api.serializers import IndicatorSerializer, DatasetSerializer, ComputationRuleSerializer
 from api.compute_serializers import ComputeRequestSerializer
-from api.services.compute import compute, ComputeError
+from api.serializers import ComputationRuleSerializer, DatasetSerializer, IndicatorSerializer
+from api.services.compute import ComputeError, compute
+from catalog.models import ComputationRule, Dataset, Indicator
 
-import json
-from urllib.parse import urlparse
-from pathlib import Path
-import requests
-from django.utils.dateparse import parse_datetime
+
+def _load_payload_from_source(source_url: str, debug: bool):
+    parsed = urlparse(source_url)
+
+    # 1) Source locale (file://) autorisée uniquement en DEBUG.
+    if parsed.scheme == "file":
+        if not debug:
+            return None, Response({"detail": "file:// interdit hors DEBUG."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Lecture du fichier JSON local (format: {"values": [...] }).
+        file_path = Path(parsed.path)
+        if file_path.drive == "" and parsed.path.startswith("/") and len(parsed.path) >= 3 and parsed.path[2] == ":":
+            file_path = Path(parsed.path[1:])
+
+        try:
+            raw = file_path.read_text(encoding="utf-8")
+            return json.loads(raw), None
+        except FileNotFoundError:
+            return None, Response({"detail": f"Fichier introuvable: {file_path}"}, status=status.HTTP_400_BAD_REQUEST)
+        except json.JSONDecodeError:
+            return None, Response({"detail": "JSON invalide dans le fichier dataset."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 2) Source distante (http/https)
+    if parsed.scheme in ("http", "https"):
+        try:
+            resp = requests.get(source_url, timeout=3)
+            resp.raise_for_status()
+            content_type = resp.headers.get("Content-Type", "")
+            if "application/json" not in content_type:
+                return None, Response(
+                    {"detail": "source_url doit renvoyer du JSON (application/json)."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return resp.json(), None
+        except requests.RequestException:
+            return None, Response({"detail": "Erreur HTTP sur source_url."}, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return None, Response({"detail": "JSON invalide depuis source_url."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 3) Schéma non supporté.
+    return None, Response(
+        {"detail": f"scheme {parsed.scheme} non supporté"},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+def _extract_values_from_payload(payload):
+    # Validation stricte du format attendu: {"values": [...]}
+    points = payload.get("values")
+    if not isinstance(points, list) or len(points) == 0:
+        return None, Response(
+            {"detail": "Le JSON dataset doit contenir une clé 'values' (liste non vide)."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    for point in points:
+        if not isinstance(point, dict):
+            return None, Response(
+                {"detail": "Chaque point doit être un objet {timestamp, value}."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        ts = point.get("timestamp")
+        if not ts or parse_datetime(str(ts)) is None:
+            return None, Response({"detail": "timestamp doit être en ISO 8601."}, status=status.HTTP_400_BAD_REQUEST)
+        value = point.get("value")
+        if (value is not None) and (not isinstance(value, (int, float))):
+            return None, Response(
+                {"detail": "value doit être un nombre (ou null si dropna=true)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    return [point.get("value") for point in points], None
 
 class IndicatorViewSet(viewsets.ModelViewSet):
     # CRUD complet pour Indicator.
@@ -41,56 +113,13 @@ class IndicatorViewSet(viewsets.ModelViewSet):
                     {"detail": "Aucun dataset associé à cet indicateur."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            parsed = urlparse(dataset.source_url)
 
-            # 1) Source locale (file://) autorisée uniquement en DEBUG.
-            if parsed.scheme == "file":
-                if not settings.DEBUG:
-                    return Response({"detail": "file:// interdit hors DEBUG."}, status=status.HTTP_400_BAD_REQUEST)
-
-                # Lecture du fichier JSON local (format: {"values": [...] }).
-                file_path = Path(parsed.path)
-                if file_path.drive == "" and parsed.path.startswith("/") and len(parsed.path) >= 3 and parsed.path[2] == ":":
-                    file_path = Path(parsed.path[1:])
-
-                try:
-                    raw = file_path.read_text(encoding="utf-8")
-                    payload = json.loads(raw)
-                except FileNotFoundError:
-                    return Response({"detail": f"Fichier introuvable: {file_path}"}, status=status.HTTP_400_BAD_REQUEST)
-                except json.JSONDecodeError:
-                    return Response({"detail": "JSON invalide dans le fichier dataset."}, status=status.HTTP_400_BAD_REQUEST)
-            # 2) Source distante (http/https) autorisée en dev + prod.
-            elif parsed.scheme in ("http", "https"):
-                try:
-                    resp = requests.get(dataset.source_url, timeout=3)
-                    resp.raise_for_status()
-                    content_type = resp.headers.get("Content-Type", "")
-                    if "application/json" not in content_type:
-                        return Response({"detail": "source_url doit renvoyer du JSON (application/json)."}, status=status.HTTP_400_BAD_REQUEST)
-                    payload = resp.json()
-                except requests.RequestException:
-                    return Response({"detail": "Erreur HTTP sur source_url."}, status=status.HTTP_400_BAD_REQUEST)
-                except ValueError:
-                    return Response({"detail": "JSON invalide depuis source_url."}, status=status.HTTP_400_BAD_REQUEST)
-            # 3) Schéma non supporté.
-            else:
-                return Response({"detail": f"scheme {parsed.scheme} non supporté"}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Validation stricte du format attendu: {"values": [...]}
-            points = payload.get("values")
-            if not isinstance(points, list) or len(points) == 0:
-                return Response({"detail": "Le JSON dataset doit contenir une clé 'values' (liste non vide)."}, status=status.HTTP_400_BAD_REQUEST)
-            for point in points:
-                if not isinstance(point, dict):
-                    return Response({"detail": "Chaque point doit être un objet {timestamp, value}."}, status=status.HTTP_400_BAD_REQUEST)
-                ts = point.get("timestamp")
-                if not ts or parse_datetime(str(ts)) is None:
-                    return Response({"detail": "timestamp doit être en ISO 8601."}, status=status.HTTP_400_BAD_REQUEST)
-                value = point.get("value")
-                if (value is not None) and (not isinstance(value, (int, float))):
-                    return Response({"detail": "value doit être un nombre (ou null si dropna=true)."}, status=status.HTTP_400_BAD_REQUEST)
-            values = [point.get("value") for point in points]
+            payload, error = _load_payload_from_source(dataset.source_url, settings.DEBUG)
+            if error:
+                return error
+            values, error = _extract_values_from_payload(payload)
+            if error:
+                return error
         else:
             points = req_ser.validated_data["values"]
             values = [point.get("value") for point in points]
