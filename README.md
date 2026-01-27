@@ -44,6 +44,16 @@ Notes:
 - `timestamp` must be ISO 8601 (timezone optional)
 - `value` can be a number or `null`
 
+### Local HTTP dataset (Docker)
+If the API runs in Docker and your JSON file is served from the host:
+- Start a local server at the repo root:
+  - `python -m http.server 8001`
+- Use this URL in `Dataset.source_url`:
+  - `http://host.docker.internal:8001/data/ds_test.json`
+
+If you start the server inside `data/`, the URL becomes:
+- `http://host.docker.internal:8001/ds_test.json`
+
 ## Useful commands
 - Create a superuser:
   - `docker compose run --rm web python bdclimats/manage.py createsuperuser`
