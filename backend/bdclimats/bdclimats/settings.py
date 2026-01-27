@@ -10,8 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
+import logging
 import os
+from pathlib import Path
+
+from api.request_context import get_request_id
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,6 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("DJANGO_SECRET_KEY is required")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "0") == "1"
@@ -29,6 +34,8 @@ DEBUG = os.getenv("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = [
     h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()
 ]
+if not DEBUG and not ALLOWED_HOSTS:
+    raise RuntimeError("DJANGO_ALLOWED_HOSTS is required when DEBUG=0")
 
 
 # Application definition
@@ -58,6 +65,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "api.request_middleware.RequestIdMiddleware",
 ]
 
 ROOT_URLCONF = "bdclimats.urls"
@@ -135,3 +143,32 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+class RequestIdFilter(logging.Filter):
+    def filter(self, record):
+        record.request_id = get_request_id() or "-"
+        return True
+    
+LOGGING = {
+    "filters": {
+        "request_id": {"()": "bdclimats.settings.RequestIdFilter"},
+    },
+    "formatters": {
+        "simple": {
+            "format": "[%(request_id)s] %(levelname)s %(name)s: %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+            "filters": ["request_id"],
+        },
+    },
+    "loggers": {
+        "django": {"handlers": ["console"], "level": "INFO"},
+        "api": {"handlers": ["console"], "level": "INFO"},
+    },
+    "version": 1,
+    "disable_existing_loggers": False,
+}
