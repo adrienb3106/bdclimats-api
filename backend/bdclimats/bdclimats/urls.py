@@ -15,11 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from api.views import ComputationRuleViewSet, DatasetViewSet, IndicatorViewSet, health
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
 from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
-from api.views import IndicatorViewSet, DatasetViewSet, ComputationRuleViewSet
 
 api_router = DefaultRouter()
 api_router.register("indicators", IndicatorViewSet, basename="indicator")
@@ -36,4 +36,5 @@ urlpatterns = [
         TemplateView.as_view(template_name="api/help.html"),
         name="api-help",
     ),
+    path("health/", health, name="health"),
 ]

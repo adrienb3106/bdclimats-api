@@ -2,7 +2,9 @@ import json
 from pathlib import Path
 from urllib.parse import urlparse
 
+from django.http import JsonResponse
 import requests
+from catalog.models import ComputationRule, Dataset, Indicator
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from rest_framework import status, viewsets
@@ -16,7 +18,6 @@ from api.serializers import (
     IndicatorSerializer,
 )
 from api.services.compute import ComputeError, compute
-from catalog.models import ComputationRule, Dataset, Indicator
 
 
 def _load_payload_from_source(source_url: str, debug: bool):
@@ -241,3 +242,6 @@ class ComputationRuleViewSet(viewsets.ModelViewSet):
     # CRUD complet pour ComputationRule.
     queryset = ComputationRule.objects.all().order_by("indicator", "version")
     serializer_class = ComputationRuleSerializer
+
+def health(request):
+    return JsonResponse({"status": "ok"})

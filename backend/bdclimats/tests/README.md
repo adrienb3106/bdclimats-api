@@ -9,7 +9,7 @@ Organisation (pour garder la lisibilité) :
   - `tu/` : tests unitaires côté modèles
 
 Priorité actuelle :
-- **TV (tests fonctionnels/validation)** d'abord  
+- **TV (tests fonctionnels/validation)** d'abord
 - **TU** ensuite si nécessaire
 
 Template (TV API)
