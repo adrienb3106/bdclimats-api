@@ -9,7 +9,9 @@ requests>=2.31,<3
 psycopg[binary]>=3.1,<4.0
 
 # JUnit XML test runner
-unittest-xml-reporting>=3.2,<4.0
-
 # Test coverage
 coverage>=7.6,<8.0
+
+# Pytest
+pytest>=7.4,<9.0
+pytest-django>=4.5,<5.0

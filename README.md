@@ -73,6 +73,7 @@ Outputs:
 - `reports/test-report.txt`
 - `reports/TEST-*.xml`
 - `reports/coverage.xml` (coverage run only)
+- `reports/htmlcov/index.html` (coverage HTML report)
 
 Notes:
 - The Docker image must be rebuilt after dependency changes:
