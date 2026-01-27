@@ -23,6 +23,12 @@ bruts.
 - Admin : `http://localhost:8000/admin/`
 - Page d’aide : `http://localhost:8000/api/help/`
 
+## Démo rapide (flow)
+1) Créer un Dataset dans l’admin (avec un `code` et éventuellement `source_url`).
+2) Créer un Indicator lié au Dataset (code, nom, unité, fréquence).
+3) Ajouter une ComputationRule active (opération + params).
+4) Appeler `POST /api/indicators/{id}/compute/` avec des points inline ou `use_dataset=true`.
+
 ## Configuration (variables d’environnement)
 Requises :
 - `DJANGO_SECRET_KEY`
