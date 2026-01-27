@@ -37,14 +37,6 @@ class IndicatorSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Le nom ne peut pas etre vide.")
         return value
 
-    def validate_unit(self, value: str) -> str:
-        if value is None:
-            raise serializers.ValidationError("L unite ne peut pas etre vide.")
-        value = value.strip()
-        if not value:
-            raise serializers.ValidationError("L unite ne peut pas etre vide.")
-        return value
-
 
 class DatasetSerializer(serializers.ModelSerializer):
     """

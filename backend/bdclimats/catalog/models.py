@@ -39,7 +39,7 @@ class Indicator(models.Model):
     name = models.CharField(max_length=128)
 
     # Unite de mesure (ex: "C", "mm").
-    unit = models.CharField(max_length=64)
+    unit = models.CharField(max_length=64, null=True, blank=True)
 
     dataset = models.ForeignKey(
         Dataset,
@@ -55,8 +55,6 @@ class Indicator(models.Model):
             raise ValidationError({"code": "Le code ne peut pas etre vide."})
         if self.unit is not None:
             self.unit = self.unit.strip()
-        if not self.unit:
-            raise ValidationError({"unit": "L unite ne peut pas etre vide."})
 
     def save(self, *args, **kwargs):
         # Valide le modele avant sauvegarde.
